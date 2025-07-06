@@ -32,14 +32,12 @@ public class SecurityConfig {
                         .requestMatchers(Endpoints.getPublicEndpoints()).permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> {
                             userInfo.oidcUserService(customOAuth2UserService);
                         })
-                        .defaultSuccessUrl("/dashboard", true)
+                        .defaultSuccessUrl("http://localhost:5173/dashboard", true)
                 )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
