@@ -36,6 +36,7 @@ public class AdminInitializerConfig implements CommandLineRunner {
                 admin.setPassword(adminPassword);
                 admin.setName(adminName);
                 admin.setRole(Roles.ADMIN);
+                admin.setEmailVerified(true);
 
                 authService.createUser(admin);
                 logger.info("Admin user created successfully");
