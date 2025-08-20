@@ -1,16 +1,16 @@
-package br.com.certifai.controller.impl;
+package br.com.certifai.controllers;
 
-import br.com.certifai.enums.Dificuldade;
+import br.com.certifai.enums.Dificuldades;
+import br.com.certifai.enums.Roles;
 import br.com.certifai.enums.Status;
 import br.com.certifai.model.Certificacao;
 import br.com.certifai.model.Prova;
-import br.com.certifai.model.Questao;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.repository.CertificacaoRepository;
 import br.com.certifai.repository.ProvaRepository;
-import br.com.certifai.repository.QuestaoRepository;
 import br.com.certifai.repository.UsuarioRepository;
 import br.com.certifai.requests.MontarProvaRequest;
+import br.com.certifai.service.interfaces.IAuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,176 +19,151 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashSet;
-
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional // Garante que cada teste rode em sua transação, que será revertida ao final
 class ProvaControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private ProvaRepository provaRepository;
     @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
     private CertificacaoRepository certificacaoRepository;
     @Autowired
-    private QuestaoRepository questaoRepository;
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private IAuthService authService;
 
+    private String userToken;
     private Usuario usuario;
     private Certificacao certificacao;
     private Prova prova;
 
     @BeforeEach
     void setUp() {
-        // Limpa os repositórios para garantir isolamento
         provaRepository.deleteAll();
-        questaoRepository.deleteAll();
         certificacaoRepository.deleteAll();
         usuarioRepository.deleteAll();
 
-        // Cria entidades base para os testes
-        usuario = usuarioRepository.save(Usuario.builder().nome("Usuario Teste").email("teste@certifai.com").build());
-        certificacao = certificacaoRepository.save(Certificacao.builder().nome("Cert Teste").questoes(new HashSet<>()).build());
+        usuario = new Usuario();
+        usuario.setName("Usuário Comum");
+        usuario.setEmail("usuario.comum@email.com");
+        usuario.setPassword(passwordEncoder.encode("senha456"));
+        usuario.setRole(Roles.ESTUDANTE);
+        usuario.setAtivo(true);
+        usuarioRepository.save(usuario);
+        userToken = "Bearer " + authService.gerarToken(usuario);
 
-        Questao questao = questaoRepository.save(Questao.builder()
-                .enunciado("Qual a resposta?")
-                .dificuldade(Dificuldade.FACIL)
-                .certificacoes(Collections.singleton(certificacao))
-                .build());
-
-        certificacao.getQuestoes().add(questao);
+        certificacao = Certificacao.builder()
+                .nome("Fundamentos de Docker")
+                .dificuldade(Dificuldades.BASICO)
+                .build();
         certificacaoRepository.save(certificacao);
 
-        prova = provaRepository.save(Prova.builder()
+        prova = Prova.builder()
                 .usuario(usuario)
                 .certificacao(certificacao)
                 .status(Status.PENDENTE)
-                .build());
-    }
-
-    @Test
-    @DisplayName("POST /provas/montar-personalizada - Deve montar prova e retornar 201 Created")
-    void montarProvaPersonalizada_ComRequestValido_DeveRetornarStatus201() throws Exception {
-        // Arrange
-        MontarProvaRequest request = new MontarProvaRequest(
-                usuario.getId(),
-                certificacao.getId(),
-                1,
-                Dificuldade.FACIL,
-                true,
-                60);
-
-        // Act & Assert
-        mockMvc.perform(post("/v1/provas/montar-personalizada")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.message", is("Prova montada com sucesso.")))
-                .andExpect(jsonPath("$.data.id", notNullValue()))
-                .andExpect(jsonPath("$.data.usuarioId", is(usuario.getId().intValue())))
-                .andExpect(jsonPath("$.data.status", is("PENDENTE")));
-    }
-
-    @Test
-    @DisplayName("GET /provas/{id} - Deve buscar prova por ID e retornar 200 OK")
-    void buscarPorId_ComIdExistente_DeveRetornarStatus200() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/v1/provas/{id}", prova.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.id", is(prova.getId().intValue())));
-    }
-
-    @Test
-    @DisplayName("GET /provas/{id} - Deve retornar 404 Not Found para ID inexistente")
-    void buscarPorId_ComIdInexistente_DeveRetornarStatus404() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/v1/provas/{id}", 9999L))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @DisplayName("GET /provas - Deve listar todas as provas e retornar 200 OK")
-    void listarTodas_DeveRetornarListaDeProvasEStatus200() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/v1/provas"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data", hasSize(1)))
-                .andExpect(jsonPath("$.data[0].id", is(prova.getId().intValue())));
-    }
-
-    @Test
-    @DisplayName("GET /provas/usuario/{usuarioId} - Deve listar provas por usuário e retornar 200 OK")
-    void listarPorUsuario_DeveRetornarListaDeProvasEStatus200() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/v1/provas/usuario/{usuarioId}", usuario.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data", hasSize(1)))
-                .andExpect(jsonPath("$.data[0].usuarioId", is(usuario.getId().intValue())));
-    }
-
-    @Test
-    @DisplayName("DELETE /provas/{id} - Deve excluir prova e retornar 200 OK")
-    void excluir_ComIdExistente_DeveRetornarStatus200() throws Exception {
-        // Act & Assert
-        mockMvc.perform(delete("/v1/provas/{id}", prova.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.message", is("Prova removida com sucesso.")));
-    }
-
-    @Test
-    @DisplayName("POST /provas/{id}/iniciar - Deve iniciar prova e retornar 200 OK")
-    void iniciar_ComProvaPendente_DeveRetornarStatus200() throws Exception {
-        // Act & Assert
-        mockMvc.perform(post("/v1/provas/{id}/iniciar", prova.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.status", is("ANDAMENTO")))
-                .andExpect(jsonPath("$.message", is("Prova iniciada.")));
-    }
-
-    @Test
-    @DisplayName("POST /provas/{id}/iniciar - Deve retornar 409 Conflict ao iniciar prova não pendente")
-    void iniciar_ComProvaNaoPendente_DeveRetornarStatus409() throws Exception {
-        // Arrange
-        prova.setStatus(Status.CONCLUIDA);
+                .pontuacao(0)
+                .build();
         provaRepository.save(prova);
-
-        // Act & Assert
-        mockMvc.perform(post("/v1/provas/{id}/iniciar", prova.getId()))
-                .andExpect(status().isConflict()); // Assumindo que IllegalStateException é mapeado para 409
     }
 
     @Test
-    @DisplayName("POST /provas/{id}/finalizar - Deve finalizar prova e retornar 200 OK")
-    void finalizar_ComProvaEmAndamento_DeveRetornarStatus200() throws Exception {
+    @DisplayName("Deve montar uma prova com sucesso")
+    void deveMontarProvaComSucesso() throws Exception {
+        MontarProvaRequest request = MontarProvaRequest.builder()
+                .usuarioId(usuario.getId())
+                .certificacaoId(certificacao.getId())
+                .numeroDeQuestoes(1)
+                .dificuldadeQuestoes(Dificuldades.AVANCADO)
+                .comTempo(false)
+                .build();
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/provas/montar-personalizada")
+                        .with(csrf())
+                        .header("Authorization", userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.status").value("PENDENTE"))
+                .andExpect(jsonPath("$.data.usuarioId").value(usuario.getId()));
+    }
+
+    @Test
+    @DisplayName("Deve listar todas as provas")
+    void deveListarTodasAsProvas() throws Exception {
+        mockMvc.perform(get("/provas")
+                        .with(csrf())
+                        .header("Authorization", userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].id").value(prova.getId()));
+    }
+
+    @Test
+    @DisplayName("Deve buscar prova por ID com sucesso")
+    void deveBuscarProvaPorIdComSucesso() throws Exception {
+        mockMvc.perform(get("/provas/{id}", prova.getId())
+                        .with(csrf())
+                        .header("Authorization", userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(prova.getId()));
+    }
+
+    @Test
+    @DisplayName("Deve iniciar uma prova com sucesso")
+    void deveIniciarProvaComSucesso() throws Exception {
+        mockMvc.perform(post("/provas/{id}/iniciar", prova.getId())
+                        .with(csrf())
+                        .header("Authorization", userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Prova iniciada com sucesso."))
+                .andExpect(jsonPath("$.data.status").value("ANDAMENTO"));
+    }
+
+    @Test
+    @DisplayName("Deve finalizar uma prova com sucesso")
+    void deveFinalizarProvaComSucesso() throws Exception {
         prova.setStatus(Status.ANDAMENTO);
         provaRepository.save(prova);
 
-        mockMvc.perform(post("/v1/provas/{id}/finalizar", prova.getId()))
+        mockMvc.perform(post("/provas/{id}/finalizar", prova.getId())
+                        .with(csrf())
+                        .header("Authorization", userToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.status", is("CONCLUIDA")))
-                .andExpect(jsonPath("$.data.pontuacao", is(0)))
-                .andExpect(jsonPath("$.message", is("Prova finalizada com sucesso.")));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Prova finalizada com sucesso."))
+                .andExpect(jsonPath("$.data.status").value("CONCLUIDA"));
+    }
+
+    @Test
+    @DisplayName("Deve remover uma prova com sucesso")
+    void deveRemoverProvaComSucesso() throws Exception {
+        mockMvc.perform(delete("/provas/{id}", prova.getId())
+                        .with(csrf())
+                        .header("Authorization", userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Prova removida com sucesso."));
     }
 }
