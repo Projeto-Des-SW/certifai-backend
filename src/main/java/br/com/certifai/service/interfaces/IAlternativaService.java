@@ -1,6 +1,5 @@
 package br.com.certifai.service.interfaces;
 
-import br.com.certifai.dto.AlternativaDTO;
 import br.com.certifai.model.Alternativa;
 
 import java.util.List;
