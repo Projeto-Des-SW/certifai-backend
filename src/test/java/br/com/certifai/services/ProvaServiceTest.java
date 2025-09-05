@@ -53,6 +53,7 @@ class ProvaServiceTest {
         certificacao = Certificacao.builder().id(1L).nome("Certificação Teste").questoes(new ArrayList<>()).build();
         prova = Prova.builder()
                 .id(1L)
+                .nome("Prova Teste")
                 .usuario(usuario)
                 .certificacao(certificacao)
                 .status(Status.PENDENTE)
@@ -204,6 +205,7 @@ class ProvaServiceTest {
     void montarProvaPersonalizada_comRequestValido_deveCriarERetornarProva() {
         MontarProvaRequest request = MontarProvaRequest.builder()
                 .usuarioId(1L)
+                .nome("Prova Personalizada")
                 .certificacaoId(1L)
                 .dificuldadeQuestoes(Dificuldades.BASICO)
                 .numeroDeQuestoes(1)
@@ -229,6 +231,7 @@ class ProvaServiceTest {
     void montarProvaPersonalizada_semQuestoesSuficientes_deveLancarIllegalStateException() {
         MontarProvaRequest request = MontarProvaRequest.builder()
                 .usuarioId(1L)
+                .nome("Prova Personalizada sem Questões")
                 .certificacaoId(1L)
                 .dificuldadeQuestoes(Dificuldades.BASICO)
                 .numeroDeQuestoes(5)

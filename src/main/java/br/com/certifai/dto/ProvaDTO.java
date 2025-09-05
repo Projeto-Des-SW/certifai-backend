@@ -7,12 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProvaDTO {
     private Long id;
+    private String nome;
     private Integer pontuacao;
     private Long tempo;
     private Status status;

@@ -103,6 +103,7 @@ public class ProvaService implements IProvaService {
         certificacao.getQuestoes().addAll(questoesSelecionadas);
         certificacaoRepository.save(certificacao);
         Prova novaProva = Prova.builder()
+                .nome(request.getNome())
                 .usuario(usuario)
                 .certificacao(certificacao)
                 .status(Status.PENDENTE)
