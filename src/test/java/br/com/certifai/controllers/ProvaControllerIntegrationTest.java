@@ -74,6 +74,7 @@ class ProvaControllerIntegrationTest {
         certificacaoRepository.save(certificacao);
 
         prova = Prova.builder()
+                .nome("Prova de Teste")
                 .usuario(usuario)
                 .certificacao(certificacao)
                 .status(Status.PENDENTE)
@@ -86,6 +87,7 @@ class ProvaControllerIntegrationTest {
     @DisplayName("Deve montar uma prova com sucesso")
     void deveMontarProvaComSucesso() throws Exception {
         MontarProvaRequest request = MontarProvaRequest.builder()
+                .nome("Montar Prova")
                 .usuarioId(usuario.getId())
                 .certificacaoId(certificacao.getId())
                 .numeroDeQuestoes(1)
