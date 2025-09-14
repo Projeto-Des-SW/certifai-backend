@@ -16,11 +16,13 @@ public interface IProvaMapper {
     @Mapping(source = "certificacao.id", target = "certificacaoId")
     @Mapping(source = "usuario.id", target = "usuarioId")
     @Mapping(source = "respostas", target = "respostaIds", qualifiedByName = "respostasToIds")
+    @Mapping(target = "questaoIds", expression = "java(prova.getQuestoes() != null ? prova.getQuestoes().stream().map(q -> q.getId()).toList() : null)")
     ProvaDTO toDTO(Prova prova);
 
     @Mapping(target = "certificacao", ignore = true)
     @Mapping(target = "usuario", ignore = true)
     @Mapping(target = "respostas", ignore = true)
+    @Mapping(target = "questoes", ignore = true)
     Prova toEntity(ProvaDTO provaDTO);
 
     @Named("respostasToIds")

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,6 +111,7 @@ public class ProvaService implements IProvaService {
                 .pontuacao(0)
                 .comTempo(request.isComTempo())
                 .tempo(request.isComTempo() ? request.getTempoEmMinutos() : null)
+                .questoes(new HashSet<>(questoesSelecionadas))
                 .build();
         Prova provaSalva = provaRepository.save(novaProva);
         if (request.isComTempo()) {
