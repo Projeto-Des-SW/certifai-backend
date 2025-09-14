@@ -50,4 +50,12 @@ public class Prova {
 
     @OneToMany(mappedBy = "prova", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Resposta> respostas = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+        name = "prova_questao",
+        joinColumns = @JoinColumn(name = "prova_id"),
+        inverseJoinColumns = @JoinColumn(name = "questao_id")
+    )
+    private Set<Questao> questoes = new HashSet<>();
 }

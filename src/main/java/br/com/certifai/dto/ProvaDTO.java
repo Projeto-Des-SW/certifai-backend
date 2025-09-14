@@ -21,4 +21,5 @@ public class ProvaDTO {
     private Long certificacaoId;
     private Long usuarioId;
     private List<Long> respostaIds;
+    private List<Long> questaoIds;
 }
