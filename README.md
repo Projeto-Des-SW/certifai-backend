@@ -138,3 +138,9 @@ A aplicação está configurada para deploy no Render.com: (https://certifai-bac
 ## 🧭 Integração com Front-end
 
 Este back-end se comunica com o front-end React hospedado em: (http://localhost:5173/) ou (https://certifai-front-ruby.vercel.app)
+
+## Informações sobre o Projeto
+
+- [Termo de Abertura do Projeto (TAP)](https://drive.google.com/file/d/1duV6n9zu65UGFHoc0tcblKy3vAvIQrbE/view?usp=sharing)
+- [Estudo de Viabilidade](https://drive.google.com/file/d/10sI4_1nXo9czEw0gfo5yPX--armzI8Ae/view?usp=sharing)
+- [Plano de Projeto](https://drive.google.com/file/d/1iVBfyaF3_tIIAzdl543iz5sF2q-njH8U/view?usp=sharing)
