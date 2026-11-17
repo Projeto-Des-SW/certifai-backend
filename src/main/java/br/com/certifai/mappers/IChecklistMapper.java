@@ -4,16 +4,10 @@ import br.com.certifai.dto.ChecklistDTO;
 import br.com.certifai.model.Certificacao;
 import br.com.certifai.model.Checklist;
 import br.com.certifai.model.Usuario;
-import br.com.certifai.repository.UsuarioRepository;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
-import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {IItemChecklistMapper.class})
 public interface IChecklistMapper {
 
     @Mapping(target = "certificacao", expression = "java(toCertificacao(dto.getCertificacaoId()))")

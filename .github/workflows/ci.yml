@@ -1,0 +1,51 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build, Static Analysis & Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up OpenJDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Grant Executable Permissions to Maven Wrapper
+        run: chmod +x mvnw
+
+      - name: Compile and Verify Dependencies
+        run: ./mvnw -B clean compile test-compile
+
+      - name: Run Automated Unit and Integration Tests
+        run: ./mvnw -B test
+
+      - name: Package Application Artifact (JAR)
+        run: ./mvnw -B package -DskipTests
+
+      - name: Upload Surefire Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-test-reports
+          path: target/surefire-reports/
+          retention-days: 7

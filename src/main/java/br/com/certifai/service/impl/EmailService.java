@@ -7,24 +7,26 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+@Slf4j
 @Service
 public class EmailService {
 
     private final SendGrid sendGrid;
 
-    @Value("${sendgrid.sender-email}")
+    @Value("${sendgrid.sender-email:certifai.suporte@gmail.com}")
     private String fromEmail;
 
-    @Value("${app.base-url}")
+    @Value("${app.base-url:https://certifai-backend.onrender.com/certifai}")
     private String baseUrl;
 
-    public EmailService(@Value("${sendgrid.api-key}") String sendGridApiKey) {
+    public EmailService(@Value("${sendgrid.api-key:SG.placeholder}") String sendGridApiKey) {
         this.sendGrid = new SendGrid(sendGridApiKey);
     }
 
@@ -71,12 +73,12 @@ public class EmailService {
             request.setBody(mail.build());
             Response response = sendGrid.api(request);
 
-            System.out.println("E-mail de verificação enviado para " + toEmail + ". Status Code: " + response.getStatusCode());
+            log.info("E-mail de verificação processado para {}. Status Code: {}", toEmail, response.getStatusCode());
             if (response.getStatusCode() >= 400) {
-                System.err.println("Erro SendGrid: " + response.getBody());
+                log.error("Erro SendGrid ao enviar verificação para {}: {}", toEmail, response.getBody());
             }
         } catch (IOException ex) {
-            System.err.println("Erro ao enviar e-mail de verificação via SendGrid para " + toEmail + ": " + ex.getMessage());
+            log.error("Exceção de I/O ao enviar e-mail de verificação via SendGrid para {}: {}", toEmail, ex.getMessage(), ex);
         }
     }
 
@@ -116,12 +118,12 @@ public class EmailService {
             request.setBody(mail.build());
             Response response = sendGrid.api(request);
 
-            System.out.println("E-mail de recuperação de senha enviado para " + toEmail + ". Status Code: " + response.getStatusCode());
+            log.info("E-mail de recuperação de senha processado para {}. Status Code: {}", toEmail, response.getStatusCode());
             if (response.getStatusCode() >= 400) {
-                System.err.println("Erro SendGrid: " + response.getBody());
+                log.error("Erro SendGrid ao enviar recuperação para {}: {}", toEmail, response.getBody());
             }
         } catch (IOException ex) {
-            System.err.println("Erro ao enviar e-mail de recuperação de senha via SendGrid para " + toEmail + ": " + ex.getMessage());
+            log.error("Exceção de I/O ao enviar e-mail de recuperação de senha via SendGrid para {}: {}", toEmail, ex.getMessage(), ex);
         }
     }
 }

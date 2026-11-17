@@ -39,6 +39,7 @@ public class Checklist {
         orphanRemoval = true, 
         fetch = FetchType.EAGER 
     )
+    @Builder.Default
     private List<ItemChecklist> itensChecklist = new ArrayList<>();
 
     public void addItem(ItemChecklist item) {

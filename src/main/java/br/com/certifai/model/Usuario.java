@@ -56,6 +56,7 @@ public class Usuario implements UserDetails {
     private Boolean ativo = true;
 
     @Column(name = "email_verified", nullable = false)
+    @Builder.Default
     private boolean emailVerified = false;
 
     @Column(name = "verification_token", unique = true, nullable = true)

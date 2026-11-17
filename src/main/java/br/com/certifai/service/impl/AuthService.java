@@ -199,6 +199,10 @@ public class AuthService implements IAuthService {
             return getUsuarioByEmail(email);
         }
 
+        if (authentication.getName() != null) {
+            return getUsuarioByEmail(authentication.getName());
+        }
+
         return Optional.empty();
     }
 

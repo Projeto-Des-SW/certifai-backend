@@ -23,6 +23,7 @@ public interface IProvaMapper {
     @Mapping(target = "usuario", ignore = true)
     @Mapping(target = "respostas", ignore = true)
     @Mapping(target = "questoes", ignore = true)
+    @Mapping(target = "comTempo", ignore = true)
     Prova toEntity(ProvaDTO provaDTO);
 
     @Named("respostasToIds")

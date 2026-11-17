@@ -25,6 +25,7 @@ public class MontarProvaRequest {
     @Min(value = 1, message = "Número de questões deve ser no mínimo 1.")
     private int numeroDeQuestoes;
 
+    @Builder.Default
     private boolean comTempo = false;
 
     private Long tempoEmMinutos;

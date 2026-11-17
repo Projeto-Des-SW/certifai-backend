@@ -3,25 +3,22 @@ package br.com.certifai.service.impl;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.certifai.dto.ChecklistDTO;
-import br.com.certifai.dto.ItemChecklistDTO;
 import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.mappers.IChecklistMapper;
 import br.com.certifai.model.Certificacao;
 import br.com.certifai.model.Checklist;
-import br.com.certifai.model.ItemChecklist;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.repository.CertificacaoRepository;
 import br.com.certifai.repository.ChecklistRepository;
-import br.com.certifai.repository.UsuarioRepository;
 import br.com.certifai.service.interfaces.IChecklistService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChecklistService implements IChecklistService {
@@ -29,7 +26,6 @@ public class ChecklistService implements IChecklistService {
     private final CertificacaoRepository certificacaoRepository;
     private final AuthService usuarioService;
     private final IChecklistMapper checklistMapper;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -37,7 +33,7 @@ public class ChecklistService implements IChecklistService {
         if (checklist.getCertificacao() == null || checklist.getCertificacao().getId() == null) {
             throw new IllegalArgumentException("É obrigatório informar o ID da certificação.");
         }
-        System.out.println("Checklist recebido no service: " + checklist);
+        log.debug("Processando criação de checklist: {}", checklist);
 
 
         Certificacao certificacaoGerenciada = certificacaoRepository.findById(checklist.getCertificacao().getId())
@@ -92,9 +88,6 @@ public class ChecklistService implements IChecklistService {
         }
 
         Checklist atualizado = checklistRepository.save(existente);
-
-        // eventPublisher.publishEvent(new ChecklistAtualizadoEvent(this, atualizado));
-
         return atualizado;
     }
 
@@ -105,7 +98,5 @@ public class ChecklistService implements IChecklistService {
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Checklist não encontrada com o ID: " + id));
 
         checklistRepository.delete(checklist);
-
-        // eventPublisher.publishEvent(new ChecklistDeletadoEvent(this, id));
     }
 }

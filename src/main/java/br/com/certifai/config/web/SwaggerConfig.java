@@ -1,6 +1,5 @@
 package br.com.certifai.config.web;
 
-import br.com.certifai.enums.Endpoints;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -12,53 +11,40 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 @Configuration
 public class SwaggerConfig {
+
+    private static final String SECURITY_SCHEME_NAME = "bearerAuth";
 
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .components(new Components()
-                        .addSecuritySchemes("bearer-key",
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME,
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT")))
+                                        .bearerFormat("JWT")
+                                        .description("Insira o token JWT no formato: Bearer {token}")))
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 .info(new Info()
-                        .title("Barbearia Unicortes API")
-                        .description("Sistema de gestão para barbearias")
-                        .version("v5.0.0")
+                        .title("CertifAI Backend API")
+                        .description("API RESTful do CertifAI — Plataforma inteligente de preparação para exames e certificações técnicas com simulados, trilhas de estudo e gestão de progresso.")
+                        .version("v1.0.0")
                         .contact(new Contact()
-                                .name("Suporte")
-                                .email("suporte@barbeariaunicortes.com.br"))
+                                .name("Equipe de Engenharia CertifAI")
+                                .email("suporte@certifai.com.br")
+                                .url("https://certifai-front-ruby.vercel.app"))
                         .license(new License()
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")));
     }
 
     @Bean
-    public GroupedOpenApi publicApi() {
+    public GroupedOpenApi allApi() {
         return GroupedOpenApi.builder()
-                .group("public-access")
-                .pathsToMatch(getPathsFromEnum(
-                        Endpoints.HOME
-                ))
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi adminApi() {
-        return GroupedOpenApi.builder()
-                .group("admin-access")
-                .pathsToMatch(getPathsFromEnum(
-                        Endpoints.REGISTER
-                ))
-                .addOpenApiCustomizer(openApi -> openApi
-                        .addSecurityItem(new SecurityRequirement()
-                                .addList("bearer-key")))
+                .group("all-endpoints")
+                .pathsToMatch("/**")
                 .build();
     }
 
@@ -66,16 +52,24 @@ public class SwaggerConfig {
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
                 .group("authentication")
-                .pathsToMatch(getPathsFromEnum(
-                        Endpoints.AUTH_LOGIN,
-                        Endpoints.AUTH_LOGOUT
-                ))
+                .pathsToMatch("/auth/**")
                 .build();
     }
 
-    private String[] getPathsFromEnum(Endpoints... endpoints) {
-        return Arrays.stream(endpoints)
-                .flatMap(e -> Stream.of(e.getPatterns()))
-                .toArray(String[]::new);
+    @Bean
+    public GroupedOpenApi coreApi() {
+        return GroupedOpenApi.builder()
+                .group("certifai-core")
+                .pathsToMatch(
+                        "/certificacoes/**",
+                        "/provas/**",
+                        "/questoes/**",
+                        "/alternativas/**",
+                        "/checklists/**",
+                        "/eventos/**",
+                        "/usuarios/**",
+                        "/itens-checklist/**"
+                )
+                .build();
     }
 }

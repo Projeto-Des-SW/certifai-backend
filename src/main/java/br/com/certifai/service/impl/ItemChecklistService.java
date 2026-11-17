@@ -26,7 +26,6 @@ public class ItemChecklistService implements IItemChecklistService {
     private final ChecklistRepository checklistRepository;
     private final UsuarioRepository usuarioRepository;
     private final EventoRepository eventoRepository;
-    // private final IItemChecklistMapper mapper;
 
     @Override
     @Transactional
@@ -74,10 +73,6 @@ public class ItemChecklistService implements IItemChecklistService {
         aplicarRegraConclusao(item);
 
         ItemChecklist atualizado = itemRepository.save(item);
-
-        // eventPublisher.publishEvent(new ItemChecklistAtualizadoEvent(this,
-        // atualizado));
-
         return atualizado;
     }
 
@@ -86,8 +81,6 @@ public class ItemChecklistService implements IItemChecklistService {
     public void deleteItem(Long id) {
         ItemChecklist item = getItemById(id);
         itemRepository.delete(item);
-
-        // eventPublisher.publishEvent(new ItemChecklistDeletadoEvent(this, id));
     }
 
     private void aplicarRegraConclusao(ItemChecklist item) {

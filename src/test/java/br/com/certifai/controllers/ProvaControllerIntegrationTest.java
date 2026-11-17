@@ -1,13 +1,16 @@
 package br.com.certifai.controllers;
 
+import br.com.certifai.enums.Categorias;
 import br.com.certifai.enums.Dificuldades;
 import br.com.certifai.enums.Roles;
 import br.com.certifai.enums.Status;
 import br.com.certifai.model.Certificacao;
 import br.com.certifai.model.Prova;
+import br.com.certifai.model.Questao;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.repository.CertificacaoRepository;
 import br.com.certifai.repository.ProvaRepository;
+import br.com.certifai.repository.QuestaoRepository;
 import br.com.certifai.repository.UsuarioRepository;
 import br.com.certifai.requests.MontarProvaRequest;
 import br.com.certifai.service.interfaces.IAuthService;
@@ -39,6 +42,8 @@ class ProvaControllerIntegrationTest {
     @Autowired
     private ProvaRepository provaRepository;
     @Autowired
+    private QuestaoRepository questaoRepository;
+    @Autowired
     private CertificacaoRepository certificacaoRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -56,6 +61,7 @@ class ProvaControllerIntegrationTest {
     void setUp() {
         provaRepository.deleteAll();
         certificacaoRepository.deleteAll();
+        questaoRepository.deleteAll();
         usuarioRepository.deleteAll();
 
         usuario = new Usuario();
@@ -86,6 +92,13 @@ class ProvaControllerIntegrationTest {
     @Test
     @DisplayName("Deve montar uma prova com sucesso")
     void deveMontarProvaComSucesso() throws Exception {
+        Questao questao = Questao.builder()
+                .enunciado("Qual a função do docker run?")
+                .dificuldade(Dificuldades.AVANCADO)
+                .categoria(Categorias.INFRA)
+                .build();
+        questaoRepository.save(questao);
+
         MontarProvaRequest request = MontarProvaRequest.builder()
                 .nome("Montar Prova")
                 .usuarioId(usuario.getId())

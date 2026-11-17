@@ -22,7 +22,9 @@ import br.com.certifai.response.AbstractResponse;
 import br.com.certifai.service.impl.ChecklistService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class ChecklistController implements ChecklistApi {
@@ -32,7 +34,7 @@ public class ChecklistController implements ChecklistApi {
 
     @Override
     public ResponseEntity<AbstractResponse<ChecklistDTO>> criar(ChecklistDTO checklistDTO) {
-        System.out.println("DTO recebido: " + checklistDTO);
+        log.debug("Recebida requisição para criar checklist: {}", checklistDTO);
 
         Checklist checklistParaSalvar = checklistMapper.toEntity(checklistDTO);
         Checklist checklistSalvo = checklistService.createChecklist(checklistParaSalvar);

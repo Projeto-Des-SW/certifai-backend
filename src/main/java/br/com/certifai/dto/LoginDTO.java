@@ -1,15 +1,14 @@
 package br.com.certifai.dto;
 
-import br.com.certifai.model.Usuario;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Optional;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginDTO {
@@ -17,5 +16,7 @@ public class LoginDTO {
     private String token;
 
     public LoginDTO(Optional<UsuarioDTO> user, String token) {
+        this.usuario = user.orElse(null);
+        this.token = token;
     }
 }

@@ -16,7 +16,9 @@ import br.com.certifai.response.AbstractResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Eventos e Agenda", description = "Endpoints para agendamento de eventos e sessões de estudo")
 @RequestMapping("/eventos")
 public interface EventoApi {
     @GetMapping

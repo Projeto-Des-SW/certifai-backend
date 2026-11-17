@@ -131,10 +131,9 @@ class AuthServiceTest {
         Usuario usuario = new Usuario();
         usuario.setEmail("email@teste.com");
 
-        when(usuarioRepository.findByEmail("email@teste.com")).thenReturn(Optional.of(usuario));
-
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("email@teste.com");
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getPrincipal()).thenReturn(usuario);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);

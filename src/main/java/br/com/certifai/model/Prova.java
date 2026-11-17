@@ -34,6 +34,7 @@ public class Prova {
     private Long tempo;
 
     @Column(name = "comTempo")
+    @Builder.Default
     private boolean comTempo = false;
 
     @Enumerated(EnumType.STRING)
@@ -49,6 +50,7 @@ public class Prova {
     private Usuario usuario;
 
     @OneToMany(mappedBy = "prova", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<Resposta> respostas = new HashSet<>();
 
     @ManyToMany
@@ -57,5 +59,6 @@ public class Prova {
         joinColumns = @JoinColumn(name = "prova_id"),
         inverseJoinColumns = @JoinColumn(name = "questao_id")
     )
+    @Builder.Default
     private Set<Questao> questoes = new HashSet<>();
 }

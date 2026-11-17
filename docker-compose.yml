@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: certifai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-certifai_db}
+      POSTGRES_USER: ${POSTGRES_USER:-certifai_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-certifai_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-certifai_user} -d ${POSTGRES_DB:-certifai_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - certifai-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: certifai-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      SERVER_SERVLET_CONTEXT_PATH: /certifai
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-certifai_db}
+      DATASOURCE_USERNAME: ${POSTGRES_USER:-certifai_user}
+      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-certifai_password}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@certifai.com.br}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@SecurePass123!}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-SG.placeholder}
+      SENDGRID_SENDER_EMAIL: ${SENDGRID_SENDER_EMAIL:-certifai.suporte@gmail.com}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080/certifai}
+      CLIENT_ID: ${CLIENT_ID:-dummy-client-id}
+      CLIENT_SECRET: ${CLIENT_SECRET:-dummy-client-secret}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/certifai/v3/api-docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - certifai-network
+
+volumes:
+  postgres_data:
+    name: certifai_postgres_data
+
+networks:
+  certifai-network:
+    name: certifai_network
+    driver: bridge
